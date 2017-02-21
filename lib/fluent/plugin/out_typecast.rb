@@ -1,7 +1,10 @@
 module Fluent
 class TypecastOutput < Output
   Fluent::Plugin.register_output('typecast', self)
-
+  # Define `router` method of v0.12 to support v0.10 or earlier
+  unless method_defined?(:router)
+    define_method("router") { Fluent::Engine }
+  end
   config_param :item_types, default: nil do |value|
     map = value.split(',').map do |type|
       key, type = type.split(/:/)
@@ -42,7 +45,7 @@ class TypecastOutput < Output
           record[key] = cast_proc.call(record[key])
         end
       end
-      Fluent::Engine.emit(tag, time, record)
+      router.emit(tag, time, record)
     end
     chain.next
   end
